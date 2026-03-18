@@ -1,7 +1,7 @@
 import 'package:ecommerce_app/data/product_model.dart';
 import 'package:ecommerce_app/product_cubit/product_cubit.dart';
 import 'package:ecommerce_app/product_service.dart';
-import 'package:ecommerce_app/screens/products_screen.dart';
+import 'package:ecommerce_app/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: ProductsScreen(),
+          home: SplashScreen(),
         )
     );
   }

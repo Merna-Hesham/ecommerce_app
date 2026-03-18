@@ -11,7 +11,18 @@ class ProductService{
       List products = data['products'];
       return products.map((p) => Product.fromJson(p)).toList();
     }
-    else {
+    else{
+      throw Exception('Failed to load products');
+    }
+  }
+
+  Future<List<Product>> getCategories() async {
+    final response = await http.get(Uri.parse('${baseUrl}products/categories'));
+    if(response.statusCode == 200){
+      final categories = jsonDecode(response.body);
+      return categories.map((p) => Product.fromJson(p)).toList();
+    }
+    else{
       throw Exception('Failed to load products');
     }
   }
