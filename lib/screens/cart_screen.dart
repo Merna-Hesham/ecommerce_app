@@ -1,24 +1,11 @@
-import 'package:ecommerce_app/cart_product.dart';
 import 'package:ecommerce_app/screens/product_details_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cart_cubit/cart_cubit.dart';
+import '../cart_cubit/cart_state.dart';
 
-class CartScreen extends StatefulWidget {
+class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
-
-  @override
-  State<CartScreen> createState() => _CartScreenState();
-}
-
-class _CartScreenState extends State<CartScreen> {
-  late int totalProducts = cartProducts.fold(
-    0,
-    (sum, item) => sum + item.quantity,
-  );
-
-  late double totalPrice = cartProducts.fold(
-    0.0,
-    (sum, item) => sum + (item.product.price * item.quantity),
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +23,14 @@ class _CartScreenState extends State<CartScreen> {
           ),
         ),
         leading: IconButton(
-            onPressed: (){
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.arrow_back_ios_rounded,
-              size: 30,
-              color: Colors.pink,
-            )
+          onPressed: (){
+            Navigator.pop(context);
+          },
+          icon: Icon(
+            Icons.arrow_back_ios_rounded,
+            size: 30,
+            color: Colors.pink,
+          ),
         ),
       ),
       body: Padding(
@@ -52,228 +39,238 @@ class _CartScreenState extends State<CartScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ListView.builder(
-                itemCount: cartProducts.length,
-                itemBuilder: (context, index){
-                  final currentProduct = cartProducts[index];
-                  return InkWell(
-                    onTap: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductDetailsScreen(product: currentProduct.product),
-                        )
-                      );
-                    },
-                    child: Card(
-                      elevation: 3,
-                      shadowColor: Colors.pink[700],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadiusGeometry.circular(12),
+              child: BlocBuilder<CartCubit, CartState>(
+                builder: (context, state){
+                  if(state is CartLoading){
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: Colors.pink,
                       ),
-                      color: Colors.white,
-                      child: ListTile(
-                        leading: Card(
-                          elevation: 3,
-                          shadowColor: Colors.pink[700],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadiusGeometry.circular(12),
-                          ),
-                          color: Colors.white,
-                          child: Image.network(
-                            currentProduct.product.thumbnail,
-                          ),
-                        ),
-                        title: Text(
-                          currentProduct.product.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.pink,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        subtitle: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Quantity:',
-                                  style: TextStyle(
-                                    color: Colors.pink[400],
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                    );
+                  }
 
-                                Card(
-                                  elevation: 3,
-                                  shadowColor: Colors.pink[700],
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadiusGeometry.circular(8),
-                                  ),
-                                  color: Colors.white,
-                                  child:
-                                  Padding(
-                                    padding: const EdgeInsets.all(4.0),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 16,
-                                          backgroundColor: Colors.pink[50],
-                                          child: IconButton(
-                                            onPressed: (){
-                                              if(currentProduct.quantity > 1){
-                                                currentProduct.quantity -= 1;
-                                                setState(() {
-                                                  totalProducts= cartProducts.fold(
-                                                    0,
-                                                        (sum, item) => sum + item.quantity,
-                                                  );
+                  if(state is CartError){
+                    return Center(
+                      child: Text(
+                        'Error: ${state.error}',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  }
 
-                                                  totalPrice = cartProducts.fold(
-                                                    0.0,
-                                                        (sum, item) => sum + (item.product.price * item.quantity),
-                                                  );
-                                                });
-                                              }
-                                            },
-                                            icon: Icon(
-                                                Icons.minimize,
-                                                color: Colors.pink,
-                                                size: 18
+                  if(state is CartLoaded){
+                    int totalProducts = context.read<CartCubit>().getTotalProducts(state.cartItems);
+                    double totalPrice = context.read<CartCubit>().getTotalPrice(state.cartItems);
+
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: state.cartItems.length,
+                              itemBuilder: (context, index){
+                                final currentItem = state.cartItems[index];
+                                final currentProduct = currentItem.product;
+                                final currentProductPrice = currentProduct.price * currentItem.quantity;
+
+                                return InkWell(
+                                  onTap: (){
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ProductDetailsScreen(product: currentProduct),
+                                      ),
+                                    );
+                                  },
+                                  child: Card(
+                                    elevation: 3,
+                                    shadowColor: Colors.pink[700],
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadiusGeometry.circular(12),
+                                    ),
+                                    color: Colors.white,
+                                    child: ListTile(
+                                      leading: Card(
+                                        elevation: 3,
+                                        shadowColor: Colors.pink[700],
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadiusGeometry.circular(12),
+                                        ),
+                                        color: Colors.white,
+                                        child: Image.network(
+                                          currentProduct.thumbnail,
+                                        ),
+                                      ),
+                                      title: Text(
+                                        currentProduct.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Colors.pink,
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      subtitle: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Quantity:',
+                                                style: TextStyle(
+                                                  color: Colors.pink[400],
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+
+                                              Card(
+                                                elevation: 3,
+                                                shadowColor: Colors.pink[700],
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadiusGeometry.circular(8),
+                                                ),
+                                                color: Colors.white,
+                                                child:
+                                                Padding(
+                                                  padding: const EdgeInsets.all(4.0),
+                                                  child: Row(
+                                                    children: [
+                                                      CircleAvatar(
+                                                        radius: 16,
+                                                        backgroundColor: Colors.pink[50],
+                                                        child: IconButton(
+                                                          onPressed: (){
+                                                            if(currentItem.quantity > 1){
+                                                              context.read<CartCubit>().decreaseQuantity(index);
+                                                            }
+                                                          },
+                                                          icon: Icon(
+                                                            Icons.minimize,
+                                                            color: Colors.pink,
+                                                            size: 18,
+                                                          ),
+                                                        ),
+                                                      ),
+
+                                                      SizedBox(
+                                                        width: 6,
+                                                      ),
+
+                                                      Text(
+                                                        currentItem.quantity.toString(),
+                                                        style: TextStyle(
+                                                          color: Colors.pink[600],
+                                                          fontSize: 20,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+
+                                                      SizedBox(
+                                                        width: 6,
+                                                      ),
+
+                                                      CircleAvatar(
+                                                        radius: 16,
+                                                        backgroundColor: Colors.pink[50],
+                                                        child: IconButton(
+                                                          onPressed: (){
+                                                            context.read<CartCubit>().increaseQuantity(index);
+                                                          },
+                                                          icon: Icon(
+                                                            Icons.add,
+                                                            color: Colors.pink,
+                                                            size: 18,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Text(
+                                            'Total Price: \$${currentProductPrice.toStringAsFixed(2)}',
+                                            style: TextStyle(
+                                              color: Colors.green,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
+                                        ],
+                                      ),
+                                      trailing: IconButton(
+                                        onPressed: (){
+                                          context.read<CartCubit>().removeFromCart(index);
+                                        },
+                                        icon: Icon(
+                                          Icons.delete_outline_rounded,
+                                          size: 26,
+                                          color: Colors.pink,
                                         ),
-
-                                        SizedBox(
-                                          width: 6,
-                                        ),
-
-                                        Text(
-                                          currentProduct.quantity.toString(),
-                                          style: TextStyle(
-                                            color: Colors.pink[600],
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-
-                                        SizedBox(
-                                          width: 6,
-                                        ),
-
-                                        CircleAvatar(
-                                          radius: 16,
-                                          backgroundColor: Colors.pink[50],
-                                          child: IconButton(
-                                            onPressed: (){
-                                              currentProduct.quantity += 1;
-                                              setState(() {
-                                                totalProducts= cartProducts.fold(
-                                                  0,
-                                                      (sum, item) => sum + item.quantity,
-                                                );
-
-                                                totalPrice = cartProducts.fold(
-                                                  0.0,
-                                                      (sum, item) => sum + (item.product.price * item.quantity),
-                                                );
-                                              });
-                                            },
-                                            icon: Icon(
-                                                Icons.add,
-                                                color: Colors.pink,
-                                                size: 18
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
+                          ),
 
-                            Text(
-                              'Total Price: \$${currentProduct.product.price * currentProduct.quantity}',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                          Card(
+                            elevation: 3,
+                            shadowColor: Colors.pink[700],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadiusGeometry.circular(12),
+                            ),
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Total no. of products: $totalProducts',
+                                style: TextStyle(
+                                  color: Colors.pink,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
-                          ],
-                        ),
-                        trailing: IconButton(
-                          onPressed: (){
-                            cartProducts.remove(currentProduct);
-                            setState(() {
-                              totalProducts= cartProducts.fold(
-                                0,
-                                    (sum, item) => sum + item.quantity,
-                              );
-
-                              totalPrice = cartProducts.fold(
-                                0.0,
-                                    (sum, item) => sum + (item.product.price * item.quantity),
-                              );
-                            });
-                          },
-                          icon: Icon(
-                            Icons.delete_outline_rounded,
-                            size: 26,
-                            color: Colors.pink,
                           ),
-                        ),
+
+                          Card(
+                            elevation: 3,
+                            shadowColor: Colors.pink[700],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadiusGeometry.circular(12),
+                            ),
+                            color: Colors.white,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'Total Price: ${totalPrice.toStringAsFixed(2)}',
+                                style: TextStyle(
+                                  color: Colors.pink,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  );
-                }
-              ),
-            ),
-
-            Card(
-              elevation: 3,
-              shadowColor: Colors.pink[700],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadiusGeometry.circular(12),
-              ),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Total no. of products: $totalProducts',
-                  style: TextStyle(
-                    color: Colors.pink,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  )
-                ),
-              ),
-            ),
-
-            Card(
-              elevation: 3,
-              shadowColor: Colors.pink[700],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadiusGeometry.circular(12),
-              ),
-              color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                    'Total Price: $totalPrice',
-                    style: TextStyle(
-                      color: Colors.pink,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    )
-                ),
+                    );
+                  }
+                  return SizedBox();
+                },
               ),
             ),
           ],

@@ -1,8 +1,10 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:ecommerce_app/data/product_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_rating_stars/flutter_rating_stars.dart';
-import '../cart_product.dart';
+import '../cart_cubit/cart_cubit.dart';
+import '../cart_cubit/cart_state.dart';
 import '../data/cart_model.dart';
 import 'cart_screen.dart';
 
@@ -18,15 +20,12 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  late int productQuantity = 1;
+  int productQuantity = 1;
 
   @override
   Widget build(BuildContext context) {
     final product = widget.product;
-    bool isInCart = cartProducts.any(
-          (item) => item.product.id == widget.product.id,
-    );
-
+    bool isInCart = context.read<CartCubit>().checkIfInCart(product);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -43,34 +42,47 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
           ),
         ),
         leading: IconButton(
-            onPressed: (){
-              Navigator.pop(context);
-            },
-            icon: Icon(
-              Icons.arrow_back_ios_rounded,
-              size: 30,
-              color: Colors.pink,
-            )
+          onPressed: (){
+            Navigator.pop(context);
+          },
+          icon: Icon(
+            Icons.arrow_back_ios_rounded,
+            size: 30,
+            color: Colors.pink,
+          ),
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.all(10.0),
-            child: InkWell(
-              onTap: (){
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CartScreen(),
-                    )
-                ).then((_) {
-                  setState(() {});
-                });
+            child: BlocBuilder<CartCubit, CartState>(
+              builder: (context, state){
+                if(state is CartLoaded){
+                  int totalProducts = context.read<CartCubit>().getTotalProducts(state.cartItems);
+
+                  return IconButton(
+                    onPressed: ()=>{
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CartScreen(),
+                        ),
+                      )
+                    },
+                    icon: Badge.count(
+                      backgroundColor: Colors.pinkAccent,
+                      textColor: Colors.white,
+                      isLabelVisible: (totalProducts == 0)? false : true,
+                      count: totalProducts,
+                      child: Icon(
+                        Icons.shopping_basket,
+                        size: 32,
+                        color: Colors.pink,
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox();
               },
-              child: Icon(
-                Icons.shopping_basket,
-                size: 32,
-                color: Colors.pink,
-              ),
             ),
           ),
         ],
@@ -90,9 +102,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: CarouselSlider(
                   items: product.images.map(
-                          (url){
-                        return Image.network(url);
-                      }
+                        (url){
+                      return Image.network(url);
+                    },
                   ).toList(),
                   options: CarouselOptions(
                     height: 200,
@@ -130,8 +142,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
                     Container(
                       decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.pink[200]
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.pink[200],
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
@@ -214,9 +226,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                               value: product.rating,
                               valueLabelColor: Colors.orangeAccent,
                               valueLabelTextStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
                               ),
                               starColor: Colors.yellow,
                               starSize: 16,
@@ -227,82 +239,82 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     ),
 
                     Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Quantity',
-                            style: TextStyle(
-                              color: Colors.pink[600],
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Quantity',
+                          style: TextStyle(
+                            color: Colors.pink[600],
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
+                        ),
 
-                          Card(
-                            elevation: 3,
-                            shadowColor: Colors.pink[700],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadiusGeometry.circular(8),
-                            ),
-                            color: Colors.white,
-                            child:
-                            Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundColor: Colors.pink[50],
-                                    child: IconButton(
-                                      onPressed: (){
-                                        if(productQuantity > 1){
-                                          productQuantity -= 1;
-                                          setState(() {});
-                                        }
-                                      },
-                                      icon: Icon(
-                                          Icons.minimize,
-                                          color: Colors.pink,
-                                          size: 24
-                                      ),
-                                    ),
-                                  ),
-
-                                  SizedBox(
-                                    width: 4,
-                                  ),
-
-                                  Text(
-                                    productQuantity.toString(),
-                                    style: TextStyle(
-                                      color: Colors.pink[600],
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  SizedBox(
-                                    width: 4,
-                                  ),
-
-                                  CircleAvatar(
-                                    backgroundColor: Colors.pink[50],
-                                    child: IconButton(
-                                      onPressed: (){
-                                        productQuantity += 1;
+                        Card(
+                          elevation: 3,
+                          shadowColor: Colors.pink[700],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadiusGeometry.circular(8),
+                          ),
+                          color: Colors.white,
+                          child:
+                          Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  backgroundColor: Colors.pink[50],
+                                  child: IconButton(
+                                    onPressed: (){
+                                      if(productQuantity > 1){
+                                        productQuantity -= 1;
                                         setState(() {});
-                                      },
-                                      icon: Icon(
-                                          Icons.add,
-                                          color: Colors.pink,
-                                          size: 24
-                                      ),
+                                      }
+                                    },
+                                    icon: Icon(
+                                      Icons.minimize,
+                                      color: Colors.pink,
+                                      size: 24,
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+
+                                SizedBox(
+                                  width: 4,
+                                ),
+
+                                Text(
+                                  productQuantity.toString(),
+                                  style: TextStyle(
+                                    color: Colors.pink[600],
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                SizedBox(
+                                  width: 4,
+                                ),
+
+                                CircleAvatar(
+                                  backgroundColor: Colors.pink[50],
+                                  child: IconButton(
+                                    onPressed: (){
+                                      productQuantity += 1;
+                                      setState(() {});
+                                    },
+                                    icon: Icon(
+                                      Icons.add,
+                                      color: Colors.pink,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ]
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -322,12 +334,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 child: ElevatedButton(
                   onPressed: (){
                     if(!isInCart){
-                      cartProducts.add(
-                        Cart(
-                          product: product,
-                          quantity: productQuantity,
-                        ),
-                      );
+                      context.read<CartCubit>().addToCart(Cart(product: product,quantity: productQuantity));
                       setState(() {
                         isInCart = true ;
                       });

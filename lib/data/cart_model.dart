@@ -1,7 +1,13 @@
-import 'package:ecommerce_app/data/product_model.dart';
+import 'package:hive/hive.dart';
+import 'product_model.dart';
+part 'cart_model_g.dart';
 
-class Cart{
+@HiveType(typeId: 1)
+class Cart extends HiveObject {
+  @HiveField(0)
   final Product product;
+
+  @HiveField(1)
   int quantity;
 
   Cart({
