@@ -53,7 +53,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: BlocBuilder<CartCubit, CartState>(
               builder: (context, state){
                 if(state is CartLoaded){

@@ -1,6 +1,7 @@
 import 'package:ecommerce_app/cart_cubit/cart_cubit.dart';
 import 'package:ecommerce_app/product_cubit/product_cubit.dart';
 import 'package:ecommerce_app/screens/product_details_screen.dart';
+import 'package:ecommerce_app/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_rating_stars/flutter_rating_stars.dart';
@@ -8,6 +9,7 @@ import '../cart_cubit/cart_state.dart';
 import '../data/cart_model.dart';
 import '../product_cubit/product_state.dart';
 import 'cart_screen.dart';
+import 'categories_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key});
@@ -17,6 +19,13 @@ class ProductsScreen extends StatefulWidget {
 }
 
 class _ProductsScreenState extends State<ProductsScreen> {
+  int currentIndex = 0;
+  final List<Widget> screens = [
+    ProductsScreen(),
+    CategoriesScreen(),
+    ProfileScreen(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +43,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: BlocBuilder<CartCubit, CartState>(
               builder: (context, state){
                 if(state is CartLoaded){
@@ -65,6 +74,59 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 return SizedBox();
               },
             ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        currentIndex: currentIndex,
+        selectedItemColor: Colors.pink,
+        unselectedItemColor: Colors.pinkAccent,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        selectedLabelStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+        onTap: (index){
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => screens[currentIndex],
+            ),
+          );
+          setState(() {
+            currentIndex = index;
+          });
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.home,
+              color: Colors.pink,
+              size: 28,
+            ),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.category_outlined,
+              color: Colors.pink,
+              size: 28,
+            ),
+            label: 'Categories',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.person,
+              color: Colors.pink,
+              size: 28,
+            ),
+            label: 'Profile',
           ),
         ],
       ),
