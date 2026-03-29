@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:ecommerce_app/data/product_model.dart';
-import 'package:ecommerce_app/product_cubit/product_state.dart';
 import 'package:http/http.dart' as http;
 
 class ProductService{

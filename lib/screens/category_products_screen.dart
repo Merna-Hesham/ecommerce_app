@@ -1,10 +1,8 @@
 import 'package:ecommerce_app/screens/product_details_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_rating_stars/flutter_rating_stars.dart';
 import '../cart_cubit/cart_cubit.dart';
 import '../cart_cubit/cart_state.dart';
-import '../data/cart_model.dart';
 import '../data/category_model.dart';
 import '../product_cubit/product_cubit.dart';
 import '../product_cubit/product_state.dart';
