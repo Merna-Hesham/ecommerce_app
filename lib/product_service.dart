@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'package:ecommerce_app/data/product_model.dart';
+import 'package:ecommerce_app/product_cubit/product_state.dart';
 import 'package:http/http.dart' as http;
 
 class ProductService{
   final String baseUrl = 'https://dummyjson.com/';
-  Future<List<Product>> getProducts() async {
+  Future<List<Product>> getProducts() async{
     final response = await http.get(Uri.parse('${baseUrl}products'));
     if(response.statusCode == 200){
       final data = jsonDecode(response.body);
@@ -16,11 +17,12 @@ class ProductService{
     }
   }
 
-  Future<List<Product>> getCategories() async {
-    final response = await http.get(Uri.parse('${baseUrl}products/categories'));
+  Future<List<Product>> getProductsByCategory(String category) async{
+    final response = await http.get(Uri.parse('${baseUrl}products/category/$category'));
     if(response.statusCode == 200){
-      final categories = jsonDecode(response.body);
-      return categories.map((p) => Product.fromJson(p)).toList();
+      final data = jsonDecode(response.body);
+      List products = data['products'];
+      return products.map((p) => Product.fromJson(p)).toList();
     }
     else{
       throw Exception('Failed to load products');

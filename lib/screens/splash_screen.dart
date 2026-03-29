@@ -33,8 +33,10 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/shop.webp',
+            Icon(
+              Icons.shopify_rounded,
+              size: 150,
+              color: Colors.pink,
             ),
 
             SizedBox(
@@ -44,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               "Shopify",
               style: TextStyle(
-                color: Colors.pinkAccent,
+                color: Colors.pink,
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
               ),

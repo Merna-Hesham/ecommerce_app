@@ -52,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => screens[currentIndex],
+              builder: (context) => screens[index],
             ),
           );
           setState(() {

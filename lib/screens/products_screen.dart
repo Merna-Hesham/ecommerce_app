@@ -25,6 +25,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
     CategoriesScreen(),
     ProfileScreen(),
   ];
+  @override
+  void initState() {
+    super.initState();
+    context.read<ProductCubit>().fetchProducts();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +101,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => screens[currentIndex],
+              builder: (context) => screens[index],
             ),
           );
           setState(() {
@@ -252,7 +257,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                                       maxLines: 1,
                                                       overflow: TextOverflow.ellipsis,
                                                       style: TextStyle(
-                                                        color: Colors.green[800],
+                                                        color: Colors.green,
                                                         fontSize: 18,
                                                         fontWeight: FontWeight.bold,
                                                       ),

@@ -16,4 +16,15 @@ class ProductCubit extends Cubit<ProductState>{
       emit(ProductFailure(error: e.toString()));
     }
   }
+
+  Future<void> fetchProductsByCategory(String category) async {
+    emit(ProductLoading());
+    try{
+      final products = await service.getProductsByCategory(category);
+      emit(ProductSuccess(products: products));
+    }
+    catch(e){
+      emit(ProductFailure(error: e.toString()));
+    }
+  }
 }

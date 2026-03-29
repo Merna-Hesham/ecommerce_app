@@ -1,3 +1,6 @@
+import 'package:ecommerce_app/category_cubit/category_cubit.dart';
+import 'package:ecommerce_app/category_service.dart';
+import 'package:ecommerce_app/data/category_model.dart';
 import 'package:ecommerce_app/data/product_model.dart';
 import 'package:ecommerce_app/product_cubit/product_cubit.dart';
 import 'package:ecommerce_app/product_service.dart';
@@ -13,13 +16,15 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(ProductAdapter());
   Hive.registerAdapter(CartAdapter());
+  Hive.registerAdapter(CategoryAdapter());
   final cartBox = await Hive.openBox<Cart>('cartBox');
   runApp(MyApp(cartBox: cartBox,));
 }
 
 class MyApp extends StatelessWidget {
-  final service = ProductService();
+  final productService = ProductService();
   final Box<Cart> cartBox;
+  final categoryService = CategoryService();
   MyApp({super.key, required this.cartBox});
 
   @override
@@ -27,10 +32,13 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
         providers: [
           BlocProvider<ProductCubit>(
-              create: (_) => ProductCubit(service)..fetchProducts()
+              create: (_) => ProductCubit(productService)..fetchProducts()
           ),
           BlocProvider<CartCubit>(
             create: (_) => CartCubit(cartBox)..loadCart()
+          ),
+          BlocProvider<CategoryCubit>(
+              create: (_) => CategoryCubit(categoryService)..fetchCategories()
           ),
         ],
         child: MaterialApp(
